@@ -22,7 +22,6 @@
 
 ...
 
-
 ## Структура проекта
   ```
   barcode-scanner/
@@ -51,16 +50,20 @@
 ## Инструкция по развертыванию
 
 1. Убедитесь, что у вас установлен **Node.js** и **Expo CLI**:
+   
     ```
     npm install -g expo-cli
 2. Клонируйте репозиторий:
+   
     ```
-    git clone https://github.com/your-repo/barcode-scanner.git
+    git clone https://github.com/gitpuga/barcode-scanner
     cd barcode-scanner
 3. Установите зависимости:
+   
     ```
     npm install
 4. Запустите Expo:
+   
     ```
-    npm start
+    npm run (android/ios/web...)
 5. Откройте приложение на устройстве через Expo Go или эмулятор.
