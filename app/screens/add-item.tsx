@@ -2,36 +2,19 @@ import { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 
 export default function AddItemScreen() {
-  const [productName, setProductName] = useState('');
-  const [brand, setBrand] = useState('');
-  const [quantity, setQuantity] = useState('');
-
   const handleSave = () => {
     // Логика сохранения товара
+  };
+  const handlePhoto = () => {
+    // Логика добавление фото
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Добавление товара</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Название"
-        value={productName}
-        onChangeText={setProductName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Бренд"
-        value={brand}
-        onChangeText={setBrand}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Количество"
-        value={quantity}
-        onChangeText={setQuantity}
-      />
-      <Button title="Сохранить" onPress={handleSave} />
+      <Text style={styles.title}>Добавление нового товара</Text>
+      <Text>Загрузите фотографии товара. На них должны быть видны:{"\n"}- упаковка;{"\n"}- состав;{"\n"}- штрихкод.</Text>
+      <Button title="Загрузить фото" onPress={handlePhoto} />
+      <Button title="Добавить товар" onPress={handleSave} />
     </View>
   );
 }

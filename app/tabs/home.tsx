@@ -20,7 +20,9 @@ export default function HomeScreen() {
 
       <Link href="/screens/awards" asChild>
         <Button title="Награды" />
-      </Link>   
+      </Link>
+
+      <Button title="Отключение рекламы" />
 
     </View>
   );
