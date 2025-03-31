@@ -10,7 +10,7 @@ export default function SignInScreen() {
   const handleSignIn = () => {
     // Здесь логика авторизации
     // При успешном входе переходим во вкладки
-    router.push('/screens/home');
+    router.push('/tabs/home');
   };
 
   return (
@@ -31,7 +31,7 @@ export default function SignInScreen() {
       />
       <Button title="Войти" onPress={handleSignIn} />
 
-      <Link href="/sign-up">
+      <Link href="/screens/sign-up">
         <Text style={styles.link}>Нет аккаунта? Зарегистрируйтесь</Text>
       </Link>
     </View>

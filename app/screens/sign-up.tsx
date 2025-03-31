@@ -10,7 +10,7 @@ export default function SignUpScreen() {
 
   const handleSignUp = () => {
     // Логика регистрации
-    router.push('/screens/home');
+    router.push('/tabs/home');
   };
 
   return (
