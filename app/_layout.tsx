@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      {/* Stack будет рендерить нужный экран в зависимости от пути */}
+      // Stack будет рендерить нужный экран в зависимости от пути
       <Stack screenOptions={{ headerShown: false }} />
       <StatusBar style="auto" />
     </SafeAreaProvider>

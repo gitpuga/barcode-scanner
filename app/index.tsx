@@ -1,34 +1,52 @@
-import { Link } from 'expo-router';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { Link, useRouter } from 'expo-router';
+import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 
-export default function IndexScreen() {
+export default function SignInScreen() {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSignIn = () => {
+    // Здесь логика авторизации
+    // При успешном входе переходим во вкладки
+    router.push('/screens/home');
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Добро пожаловать</Text>
+      <Text style={styles.title}>Вход</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Email или телефон"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Пароль"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+      <Button title="Войти" onPress={handleSignIn} />
 
-      {/* Переход на экран входа */}
-      <Link href="/auth/sign-in" asChild>
-        <Button title="Войти" />
-      </Link>
-
-      {/* Переход на экран регистрации */}
-      <Link href="/auth/sign-up" asChild>
-        <Button title="Зарегистрироваться" />
+      <Link href="/sign-up">
+        <Text style={styles.link}>Нет аккаунта? Зарегистрируйтесь</Text>
       </Link>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1, 
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16
+  container: { flex: 1, padding: 16, justifyContent: 'center' },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    padding: 8,
+    marginBottom: 12
   },
-  title: {
-    fontSize: 24, 
-    fontWeight: 'bold', 
-    marginBottom: 20
-  }
+  link: { color: 'blue', marginTop: 8, textAlign: 'center' }
 });

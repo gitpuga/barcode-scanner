@@ -9,8 +9,8 @@ export default function SignUpScreen() {
   const [password2, setPassword2] = useState('');
 
   const handleSignUp = () => {
-    // TODO: ваша логика регистрации
-    router.push('/(tabs)/home');
+    // Логика регистрации
+    router.push('/screens/home');
   };
 
   return (
@@ -38,7 +38,7 @@ export default function SignUpScreen() {
       />
       <Button title="Зарегистрироваться" onPress={handleSignUp} />
 
-      <Link href="/auth/sign-in">
+      <Link href="/">
         <Text style={styles.link}>Уже есть аккаунт? Войти</Text>
       </Link>
     </View>
