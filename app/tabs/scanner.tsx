@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -10,13 +10,21 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CameraView, Camera } from "expo-camera";
 
 export default function ScannerScreen() {
+  const insets = useSafeAreaInsets();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const cameraRef = useRef<CameraView>(null);
+  const [flashMode, setFlashMode] = useState<"off" | "on" | "auto">("off");
 
-  // Имитация запроса разрешений камеры
+  // Запрос разрешений камеры
   useEffect(() => {
-    setHasPermission(true); // В реальном приложении здесь должен быть настоящий запрос
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === "granted");
+    })();
   }, []);
 
   const handleScan = () => {
@@ -24,7 +32,7 @@ export default function ScannerScreen() {
   };
 
   const toggleFlash = () => {
-    Alert.alert("Вспышка", "Вспышка включена/выключена");
+    setFlashMode(flashMode === "off" ? "on" : "off");
   };
 
   const openGallery = async () => {
@@ -60,7 +68,10 @@ export default function ScannerScreen() {
         <Text>Нет доступа к камере</Text>
         <TouchableOpacity
           style={styles.permissionButton}
-          onPress={() => setHasPermission(true)}
+          onPress={async () => {
+            const { status } = await Camera.requestCameraPermissionsAsync();
+            setHasPermission(status === "granted");
+          }}
         >
           <Text style={styles.permissionButtonText}>Запросить разрешение</Text>
         </TouchableOpacity>
@@ -71,7 +82,12 @@ export default function ScannerScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#333" />
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          { paddingTop: insets.top > 0 ? insets.top : 20 },
+        ]}
+      >
         <TouchableOpacity onPress={goBack} style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color="black" />
         </TouchableOpacity>
@@ -80,18 +96,29 @@ export default function ScannerScreen() {
       </View>
 
       <View style={styles.cameraContainer}>
-        {/* Имитация камеры */}
-        <View style={styles.overlay}>
-          <View style={styles.scanArea}>
-            <View style={styles.cornerTopLeft} />
-            <View style={styles.cornerTopRight} />
-            <View style={styles.cornerBottomLeft} />
-            <View style={styles.cornerBottomRight} />
+        <CameraView
+          style={styles.camera}
+          facing="back"
+          flash={flashMode}
+          ref={cameraRef}
+        >
+          <View style={styles.overlay}>
+            <View style={styles.scanArea}>
+              <View style={styles.cornerTopLeft} />
+              <View style={styles.cornerTopRight} />
+              <View style={styles.cornerBottomLeft} />
+              <View style={styles.cornerBottomRight} />
+            </View>
           </View>
-        </View>
+        </CameraView>
       </View>
 
-      <View style={styles.footer}>
+      <View
+        style={[
+          styles.footer,
+          { paddingBottom: insets.bottom > 0 ? insets.bottom : 20 },
+        ]}
+      >
         <TouchableOpacity style={styles.footerButton} onPress={openGallery}>
           <Ionicons name="images-outline" size={24} color="black" />
           <Text style={styles.footerButtonText}>Галерея</Text>
@@ -102,7 +129,11 @@ export default function ScannerScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.footerButton} onPress={toggleFlash}>
-          <Ionicons name="flash-outline" size={24} color="black" />
+          <Ionicons
+            name={flashMode === "on" ? "flash" : "flash-outline"}
+            size={24}
+            color="black"
+          />
           <Text style={styles.footerButtonText}>Вспышка</Text>
         </TouchableOpacity>
       </View>
@@ -120,7 +151,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     padding: 15,
-    paddingTop: 20,
   },
   backButton: {
     width: 40,
@@ -135,12 +165,15 @@ const styles = StyleSheet.create({
   },
   cameraContainer: {
     flex: 1,
-    backgroundColor: "#888",
+  },
+  camera: {
+    flex: 1,
   },
   overlay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "transparent",
   },
   scanArea: {
     width: 250,

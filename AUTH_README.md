@@ -13,12 +13,10 @@
 
 ## Интеграция с API
 
-Система аутентификации подключается к RESTful API бэкенда с использованием axios. Ожидаются следующие конечные точки API:
+Система аутентификации подключается к RESTful API бэкенда с использованием axios. Конечные точки API:
 
 - `POST /auth/register` - Для регистрации пользователя
 - `POST /auth/login` - Для входа пользователя
-
-Вам необходимо настроить URL бэкенда в файле `app/services/api.ts`, изменив константу `API_URL`.
 
 ## Технологический стек
 
@@ -56,7 +54,7 @@
 ```typescript
 import { useAuth } from '../context/AuthContext';
 
-// В вашем компоненте
+// В компоненте
 const { user, login, logout, isAuthenticated } = useAuth();
 
 // Вход в систему

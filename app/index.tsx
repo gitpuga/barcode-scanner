@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useAuth } from "./context/AuthContext";
 
 export default function LoginScreen() {
@@ -38,19 +38,20 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
-    try {
-      clearError();
+    // try {
+    //   clearError();
 
-      if (!validate()) return;
+    //   if (!validate()) return;
 
-      await login({
-        email,
-        password,
-      });
-    } catch (err) {
-      // Ошибка обрабатывается в контексте аутентификации
-      console.log("Ошибка входа:", err);
-    }
+    //   await login({
+    //     email,
+    //     password,
+    //   });
+    // } catch (err) {
+    //   // Ошибка обрабатывается в контексте аутентификации
+    //   console.log("Ошибка входа:", err);
+    // }
+    router.push("/tabs/home");
   };
 
   // Сообщение об ошибке, если произошла ошибка API
