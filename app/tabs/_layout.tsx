@@ -1,24 +1,19 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { View, StyleSheet, Pressable } from "react-native";
 
 export default function TabsLayout() {
-  const insets = useSafeAreaInsets();
-
   return (
     <Tabs
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
+          display: route.name === "scanner" ? "none" : "flex",
           position: "absolute",
           bottom: 0,
-          height: 60 + insets.bottom,
-          backgroundColor: "#333",
-          borderTopWidth: 0,
-          elevation: 0,
-          display: route.name === "scanner" ? "none" : "flex",
+          backgroundColor: "#ffffff",
+          height: 60,
         },
         tabBarButton: (props) => {
           if (route.name === "scanner") {
@@ -33,11 +28,7 @@ export default function TabsLayout() {
                     alignItems: "center",
                   },
                 ]}
-              >
-                <View style={styles.scannerTab}>
-                  <Text style={styles.scannerText}>Сканер</Text>
-                </View>
-              </Pressable>
+              ></Pressable>
             );
           }
           return <Pressable {...props} />;
@@ -51,8 +42,9 @@ export default function TabsLayout() {
             <View style={styles.tabContainer}>
               <Ionicons
                 name="home-outline"
-                color={focused ? "#FFF" : "#CCC"}
-                size={30}
+                color={focused ? "#000" : "#000"}
+                size={37}
+                style={styles.tabIcon}
               />
             </View>
           ),
@@ -61,7 +53,17 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="scanner"
         options={{
-          tabBarIcon: () => null,
+          tabBarIcon: ({ focused }) => (
+            <View style={styles.tabContainer}>
+              <View style={styles.scannerTab}>
+                <Ionicons
+                  name="scan-sharp"
+                  color={focused ? "#000" : "#000"}
+                  size={40}
+                />
+              </View>
+            </View>
+          ),
         }}
       />
       <Tabs.Screen
@@ -71,8 +73,9 @@ export default function TabsLayout() {
             <View style={styles.tabContainer}>
               <Ionicons
                 name="time-outline"
-                color={focused ? "#FFF" : "#CCC"}
-                size={30}
+                color={focused ? "#000" : "#000"}
+                size={40}
+                style={styles.tabIcon}
               />
             </View>
           ),
@@ -86,34 +89,21 @@ const styles = StyleSheet.create({
   tabContainer: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-around",
-  },
-  tabIconContainer: {
-    display: "none",
-  },
-  tabLabel: {
-    fontSize: 12,
-    color: "#CCC",
-  },
-  tabLabelFocused: {
-    color: "#FFF",
+    justifyContent: "center",
   },
   scannerTab: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#FFF",
+    width: 80,
+    height: 80,
+    borderRadius: 100,
+    borderColor: "#ffffff",
+    borderWidth: 7,
+    backgroundColor: "#ffc268",
     justifyContent: "center",
     alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
   },
-  scannerText: {
-    fontSize: 12,
-    color: "#000",
-    fontWeight: "500",
+  tabIcon: {
+    marginTop: 16,
+    width: 40,
+    height: 40,
   },
 });

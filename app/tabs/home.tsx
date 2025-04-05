@@ -15,15 +15,6 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text
-        style={[
-          styles.header,
-          { paddingTop: insets.top > 0 ? insets.top : 15 },
-        ]}
-      >
-        Главная
-      </Text>
-
       <ScrollView style={styles.contentContainer}>
         <View style={styles.profileContainer}>
           <Ionicons name="person-circle-outline" size={32} color="black" />
@@ -88,16 +79,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f5f5",
   },
-  header: {
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
-    padding: 15,
-    backgroundColor: "#333",
-    color: "white",
-  },
   contentContainer: {
     flex: 1,
+    paddingTop: 40
   },
   profileContainer: {
     flexDirection: "row",
