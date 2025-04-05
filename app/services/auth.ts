@@ -1,6 +1,7 @@
-import api from "./api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "./api";
 
+// Типы данных
 export interface SignUpData {
   firstName: string;
   lastName: string;
@@ -14,22 +15,31 @@ export interface LoginData {
 }
 
 export interface AuthResponse {
-  user: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-  token: string;
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  accessToken: string;
 }
 
 class AuthService {
   async signUp(userData: SignUpData): Promise<AuthResponse> {
     try {
-      const response = await api.post<AuthResponse>("/auth/register", userData);
+      const response = await api.post<AuthResponse>("/auth/signup", userData);
 
       // Сохранение токена
-      await this.setToken(response.data.token);
+      await this.setToken(response.data.accessToken);
+
+      // Сохранение данных пользователя
+      const user = {
+        id: response.data.id,
+        firstName: response.data.firstName,
+        lastName: response.data.lastName,
+        email: response.data.email,
+        role: response.data.role,
+      };
+      await this.setUserData(user);
 
       return response.data;
     } catch (error) {
@@ -40,10 +50,23 @@ class AuthService {
 
   async login(credentials: LoginData): Promise<AuthResponse> {
     try {
-      const response = await api.post<AuthResponse>("/auth/login", credentials);
+      const response = await api.post<AuthResponse>(
+        "/auth/signin",
+        credentials
+      );
 
       // Сохранение токена
-      await this.setToken(response.data.token);
+      await this.setToken(response.data.accessToken);
+
+      // Сохранение данных пользователя
+      const user = {
+        id: response.data.id,
+        firstName: response.data.firstName,
+        lastName: response.data.lastName,
+        email: response.data.email,
+        role: response.data.role,
+      };
+      await this.setUserData(user);
 
       return response.data;
     } catch (error) {
@@ -63,7 +86,7 @@ class AuthService {
     }
   }
 
-  async getCurrentUser(): Promise<AuthResponse["user"] | null> {
+  async getCurrentUser(): Promise<Omit<AuthResponse, "accessToken"> | null> {
     try {
       const userData = await AsyncStorage.getItem("user_data");
       return userData ? JSON.parse(userData) : null;
@@ -82,9 +105,10 @@ class AuthService {
     await AsyncStorage.setItem("auth_token", token);
   }
 
-  async setUserData(user: AuthResponse["user"]): Promise<void> {
+  async setUserData(user: Omit<AuthResponse, "accessToken">): Promise<void> {
     await AsyncStorage.setItem("user_data", JSON.stringify(user));
   }
 }
 
-export default new AuthService();
+const authService = new AuthService();
+export default authService;

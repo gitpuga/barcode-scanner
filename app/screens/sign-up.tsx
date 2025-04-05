@@ -9,6 +9,7 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
 
@@ -76,7 +77,9 @@ export default function SignUpScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Регистрация</Text>
+
       <TextInput
         style={[
           styles.input,
@@ -184,45 +187,47 @@ export default function SignUpScreen() {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
     justifyContent: "center",
-    backgroundColor: "#e0e0e0",
+    backgroundColor: "#fff",
   },
   title: {
-    fontSize: 18,
-    marginBottom: 24,
-    color: "#666",
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
   },
   input: {
-    backgroundColor: "white",
-    borderRadius: 4,
-    padding: 12,
-    marginBottom: 12,
-    fontSize: 16,
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    marginBottom: 15,
+    paddingHorizontal: 10,
   },
   inputError: {
-    borderWidth: 1,
     borderColor: "red",
   },
   errorText: {
     color: "red",
+    marginBottom: 10,
     fontSize: 12,
-    marginBottom: 8,
-    marginTop: -8,
   },
   registerButton: {
-    backgroundColor: "#9e9e9e",
-    borderRadius: 4,
-    padding: 14,
+    backgroundColor: "#007AFF",
+    borderRadius: 8,
+    height: 50,
+    justifyContent: "center",
     alignItems: "center",
-    marginTop: 8,
+    marginTop: 10,
+    marginBottom: 20,
   },
   disabledButton: {
     opacity: 0.7,
@@ -230,35 +235,35 @@ const styles = StyleSheet.create({
   registerButtonText: {
     color: "white",
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "bold",
   },
   link: {
-    color: "#666",
-    marginTop: 14,
+    color: "#007AFF",
     textAlign: "center",
+    marginBottom: 30,
   },
   socialContainer: {
-    marginTop: 40,
+    alignItems: "center",
   },
   socialText: {
-    textAlign: "center",
-    marginBottom: 14,
+    marginBottom: 10,
     color: "#666",
   },
   socialButtons: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: 20,
   },
   socialButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    overflow: "hidden",
-    backgroundColor: "white",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#f0f0f0",
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 10,
   },
   socialIcon: {
-    width: 44,
-    height: 44,
+    width: 30,
+    height: 30,
   },
 });

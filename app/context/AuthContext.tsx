@@ -7,7 +7,7 @@ import authService, {
 } from "../services/auth";
 
 interface AuthContextType {
-  user: AuthResponse["user"] | null;
+  user: Omit<AuthResponse, "accessToken"> | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
@@ -22,7 +22,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<AuthResponse["user"] | null>(null);
+  const [user, setUser] = useState<Omit<AuthResponse, "accessToken"> | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,14 +54,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsLoading(true);
       setError(null);
 
-      // Проверка совпадения паролей (это также должно проверяться в UI)
-      if (data.password !== data.password) {
-        throw new Error("Пароли не совпадают");
-      }
-
       const response = await authService.signUp(data);
-      setUser(response.user);
-      await authService.setUserData(response.user);
+      const userData = {
+        id: response.id,
+        firstName: response.firstName,
+        lastName: response.lastName,
+        email: response.email,
+        role: response.role,
+      };
+      setUser(userData);
       setIsAuthenticated(true);
       router.replace("/tabs/home");
     } catch (err: any) {
@@ -78,8 +81,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setError(null);
 
       const response = await authService.login(data);
-      setUser(response.user);
-      await authService.setUserData(response.user);
+      const userData = {
+        id: response.id,
+        firstName: response.firstName,
+        lastName: response.lastName,
+        email: response.email,
+        role: response.role,
+      };
+      setUser(userData);
       setIsAuthenticated(true);
       router.replace("/tabs/home");
     } catch (err: any) {
