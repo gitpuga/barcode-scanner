@@ -3,21 +3,62 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Alert,
+  TouchableOpacity,
+  ActivityIndicator,
   StatusBar,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CameraView, Camera } from "expo-camera";
+import { CameraView, Camera, BarcodeScanningResult } from "expo-camera";
+import { useAuth } from "../context/AuthContext";
+
+// Функция для запроса информации о продукте по штрих-коду
+const fetchProductInfo = async (barcode: string) => {
+  try {
+    const response = await fetch(`http://192.168.1.23:5000/api/products/barcode/${barcode}`);
+    if (!response.ok) {
+      throw new Error('Товар не найден');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Ошибка при получении данных о товаре:', error);
+    console.log(barcode);
+    throw error;
+  }
+};
+
+// Функция для получения рекомендуемых товаров
+const fetchRecommendedProducts = async () => {
+  try {
+    const response = await fetch('http://10.0.2.2:5000/api/products?limit=2');
+    if (!response.ok) {
+      return [];
+    }
+    const products = await response.json();
+    
+    // Преобразуем данные в формат, ожидаемый компонентом
+    return products.map((product: any) => ({
+      id: product.id,
+      name: product.name,
+      image: product.photo ? `http://10.0.2.2:5000${product.photo}` : null
+    })).slice(0, 2); // Ограничиваем до 2 товаров
+  } catch (error) {
+    console.error('Ошибка при получении рекомендуемых товаров:', error);
+    return [];
+  }
+};
 
 export default function ScannerScreen() {
   const insets = useSafeAreaInsets();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [scanned, setScanned] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [flashMode, setFlashMode] = useState<"off" | "torch">("off");
   const cameraRef = useRef<CameraView>(null);
-  const [flashMode, setFlashMode] = useState<"off" | "on" | "auto">("off");
+  const { isAuthenticated } = useAuth();
 
   // Запрос разрешений камеры
   useEffect(() => {
@@ -27,12 +68,51 @@ export default function ScannerScreen() {
     })();
   }, []);
 
-  const handleScan = () => {
-    Alert.alert("Сканирование", "Товар успешно отсканирован", [{ text: "OK" }]);
+  const handleBarCodeScanned = async (scanningResult: BarcodeScanningResult) => {
+    if (!isAuthenticated) {
+      alert('Пожалуйста, войдите в систему для сканирования товаров');
+      router.navigate('/');
+      return;
+    }
+
+    if (scanned || loading) return;
+    
+    setScanned(true);
+    setLoading(true);
+
+    try {
+      // Запрос к API для получения информации о продукте
+      const productInfo = await fetchProductInfo(scanningResult.data);
+      
+      // Получаем рекомендуемые товары (можно реализовать отдельный запрос)
+      const recommendedProducts = await fetchRecommendedProducts();
+      
+      router.navigate({
+        pathname: '/screens/scanned-item',
+        params: { 
+          barcode: productInfo.barcode,
+          barcodeType: scanningResult.type,
+          productName: productInfo.name,
+          productImage: productInfo.photo ? `http://10.0.2.2:5000${productInfo.photo}` : null,
+          composition: productInfo.ingredients || '',
+          allergens: '',  // Это поле может не быть в вашей модели, но оно отображается на макете
+          nutritionalValue: JSON.stringify(productInfo.nutritionalValue) || '',
+          recommendedProducts: JSON.stringify(recommendedProducts)
+        }
+      });
+    } catch (error) {
+      Alert.alert(
+        'Ошибка сканирования',
+        'Не удалось получить информацию о товаре. Пожалуйста, попробуйте снова.',
+        [{ text: 'OK', onPress: () => setScanned(false) }]
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleFlash = () => {
-    setFlashMode(flashMode === "off" ? "on" : "off");
+    setFlashMode(flashMode === "off" ? "torch" : "off");
   };
 
   const openGallery = async () => {
@@ -40,6 +120,7 @@ export default function ScannerScreen() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
+      quality: 1,
     });
 
     if (!result.canceled) {
@@ -65,7 +146,7 @@ export default function ScannerScreen() {
   if (hasPermission === false) {
     return (
       <View style={styles.container}>
-        <Text>Нет доступа к камере</Text>
+        <Text style={styles.permissionText}>Нет доступа к камере</Text>
         <TouchableOpacity
           style={styles.permissionButton}
           onPress={async () => {
@@ -81,7 +162,9 @@ export default function ScannerScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#333" />
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
+      
+      {/* Шапка с кнопкой назад */}
       <View
         style={[
           styles.header,
@@ -89,30 +172,48 @@ export default function ScannerScreen() {
         ]}
       >
         <TouchableOpacity onPress={goBack} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="black" />
+          <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.title}>Сканер</Text>
         <View style={styles.placeholder} />
       </View>
 
+      {/* Камера и область сканирования */}
       <View style={styles.cameraContainer}>
-        <CameraView
-          style={styles.camera}
-          facing="back"
-          flash={flashMode}
-          ref={cameraRef}
-        >
-          <View style={styles.overlay}>
-            <View style={styles.scanArea}>
-              <View style={styles.cornerTopLeft} />
-              <View style={styles.cornerTopRight} />
-              <View style={styles.cornerBottomLeft} />
-              <View style={styles.cornerBottomRight} />
-            </View>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#fff" />
+            <Text style={styles.loadingText}>Анализируем продукт...</Text>
           </View>
-        </CameraView>
+        ) : (
+          <CameraView
+            style={styles.camera}
+            facing="back"
+            barcodeScannerSettings={{
+              barcodeTypes: [
+                "ean13", "ean8", "upc_a", "upc_e", 
+                "code39", "code93", "code128", 
+                "codabar", "itf14", "pdf417", "qr"
+              ],
+            }}
+            onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+            //flash={flashMode}
+            ref={cameraRef}
+          >
+            <View style={styles.overlay}>
+              <View style={styles.scanArea}>
+                <View style={styles.cornerTopLeft} />
+                <View style={styles.cornerTopRight} />
+                <View style={styles.cornerBottomLeft} />
+                <View style={styles.cornerBottomRight} />
+              </View>
+              <Text style={styles.scanHint}>Наведите на штрих-код</Text>
+            </View>
+          </CameraView>
+        )}
       </View>
 
+      {/* Нижняя панель с кнопками */}
       <View
         style={[
           styles.footer,
@@ -120,21 +221,19 @@ export default function ScannerScreen() {
         ]}
       >
         <TouchableOpacity style={styles.footerButton} onPress={openGallery}>
-          <Ionicons name="images-outline" size={24} color="black" />
+          <Ionicons name="images-outline" size={28} color="white" />
           <Text style={styles.footerButtonText}>Галерея</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.scanButton} onPress={handleScan}>
-          <View style={styles.scanButtonInner} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.footerButton} onPress={toggleFlash}>
+        <TouchableOpacity 
+          style={styles.flashButton} 
+          onPress={toggleFlash}
+        >
           <Ionicons
-            name={flashMode === "on" ? "flash" : "flash-outline"}
-            size={24}
-            color="black"
+            name={flashMode === "torch" ? "flash" : "flash-outline"}
+            size={28}
+            color="white"
           />
-          <Text style={styles.footerButtonText}>Вспышка</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -144,29 +243,34 @@ export default function ScannerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#999",
+    backgroundColor: "#000",
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
-    marginTop: 10,
-    backgroundColor: "#DDDDDD",
+    justifyContent: "space-between",
+    padding: 15,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1,
   },
   backButton: {
     width: 40,
   },
   title: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
-    color: "black",
+    color: "white",
   },
   placeholder: {
     width: 40,
   },
   cameraContainer: {
     flex: 1,
+    position: "relative",
   },
   camera: {
     flex: 1,
@@ -175,12 +279,23 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "transparent",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
   },
   scanArea: {
     width: 250,
     height: 250,
     position: "relative",
+    marginBottom: 30,
+  },
+  scanHint: {
+    color: "white",
+    fontSize: 16,
+    marginTop: 20,
+    textAlign: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
   },
   cornerTopLeft: {
     position: "absolute",
@@ -191,7 +306,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 3,
     borderLeftWidth: 3,
     borderColor: "white",
-    borderTopLeftRadius: 10,
   },
   cornerTopRight: {
     position: "absolute",
@@ -202,7 +316,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 3,
     borderRightWidth: 3,
     borderColor: "white",
-    borderTopRightRadius: 10,
   },
   cornerBottomLeft: {
     position: "absolute",
@@ -213,7 +326,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 3,
     borderLeftWidth: 3,
     borderColor: "white",
-    borderBottomLeftRadius: 10,
   },
   cornerBottomRight: {
     position: "absolute",
@@ -224,47 +336,54 @@ const styles = StyleSheet.create({
     borderBottomWidth: 3,
     borderRightWidth: 3,
     borderColor: "white",
-    borderBottomRightRadius: 10,
   },
   footer: {
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
     padding: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   footerButton: {
     alignItems: "center",
+    padding: 10,
   },
   footerButtonText: {
-    color: "black",
+    color: "white",
     marginTop: 5,
     fontSize: 12,
   },
-  scanButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: "white",
+  flashButton: {
+    padding: 15,
+  },
+  loadingContainer: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 3,
+    backgroundColor: "#000",
   },
-  scanButtonInner: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#f0f0f0",
-    borderWidth: 1,
-    borderColor: "#ddd",
+  loadingText: {
+    color: "white",
+    marginTop: 20,
+    fontSize: 16,
+  },
+  permissionText: {
+    color: "white",
+    fontSize: 16,
+    marginBottom: 20,
   },
   permissionButton: {
     backgroundColor: "#2980b9",
-    padding: 10,
+    padding: 15,
     borderRadius: 5,
-    marginTop: 20,
   },
   permissionButtonText: {
     color: "white",
     fontWeight: "bold",
+    fontSize: 16,
   },
 });

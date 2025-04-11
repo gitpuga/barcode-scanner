@@ -138,3 +138,6 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
+// Добавляем дефолтный экспорт для совместимости с Expo Router
+export default AuthProvider;

@@ -7,12 +7,9 @@ import {
   Image,
   ScrollView,
 } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function HomeScreen() {
-  const insets = useSafeAreaInsets();
-
   return (
     <View style={styles.container}>
       <ScrollView style={styles.contentContainer}>

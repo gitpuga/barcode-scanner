@@ -28,18 +28,24 @@ class AuthService {
     try {
       const response = await api.post<AuthResponse>("/auth/signup", userData);
 
-      // Сохранение токена
-      await this.setToken(response.data.accessToken);
+      // Сохранение токена, только если он существует
+      if (response.data && response.data.accessToken) {
+        await this.setToken(response.data.accessToken);
+      } else {
+        console.warn("Токен авторизации отсутствует в ответе API");
+      }
 
       // Сохранение данных пользователя
-      const user = {
-        id: response.data.id,
-        firstName: response.data.firstName,
-        lastName: response.data.lastName,
-        email: response.data.email,
-        role: response.data.role,
-      };
-      await this.setUserData(user);
+      if (response.data) {
+        const user = {
+          id: response.data.id,
+          firstName: response.data.firstName,
+          lastName: response.data.lastName,
+          email: response.data.email,
+          role: response.data.role,
+        };
+        await this.setUserData(user);
+      }
 
       return response.data;
     } catch (error) {
@@ -55,18 +61,24 @@ class AuthService {
         credentials
       );
 
-      // Сохранение токена
-      await this.setToken(response.data.accessToken);
+      // Сохранение токена, только если он существует
+      if (response.data && response.data.accessToken) {
+        await this.setToken(response.data.accessToken);
+      } else {
+        console.warn("Токен авторизации отсутствует в ответе API");
+      }
 
       // Сохранение данных пользователя
-      const user = {
-        id: response.data.id,
-        firstName: response.data.firstName,
-        lastName: response.data.lastName,
-        email: response.data.email,
-        role: response.data.role,
-      };
-      await this.setUserData(user);
+      if (response.data) {
+        const user = {
+          id: response.data.id,
+          firstName: response.data.firstName,
+          lastName: response.data.lastName,
+          email: response.data.email,
+          role: response.data.role,
+        };
+        await this.setUserData(user);
+      }
 
       return response.data;
     } catch (error) {
@@ -102,10 +114,18 @@ class AuthService {
   }
 
   private async setToken(token: string): Promise<void> {
+    if (!token) {
+      console.warn("Попытка сохранить пустой токен");
+      return;
+    }
     await AsyncStorage.setItem("auth_token", token);
   }
 
   async setUserData(user: Omit<AuthResponse, "accessToken">): Promise<void> {
+    if (!user) {
+      console.warn("Попытка сохранить пустые данные пользователя");
+      return;
+    }
     await AsyncStorage.setItem("user_data", JSON.stringify(user));
   }
 }
