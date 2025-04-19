@@ -4,19 +4,40 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Image,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../context/AuthContext";
 
 export default function HomeScreen() {
+  const { user, isLoading, isAuthenticated } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.contentContainer}>
-        <View style={styles.profileContainer}>
+      <View style={styles.profileContainer}>
           <Ionicons name="person-circle-outline" size={32} color="black" />
-          <Text style={styles.profileName}>Имя Фамилия</Text>
-          <Ionicons name="settings-outline" size={24} color="black" />
+          {isAuthenticated && user ? (
+            <Text style={styles.profileName}>
+              {user.firstName} {user.lastName}
+            </Text>
+          ) : (
+            <Text style={styles.profileName}>Гость</Text>
+          )}
+          <Link href="/screens/profile" asChild>
+            <TouchableOpacity>
+              <Ionicons name="settings-outline" size={24} color="black" />
+            </TouchableOpacity>
+          </Link>
         </View>
 
         <Link href="/screens/lists" asChild>

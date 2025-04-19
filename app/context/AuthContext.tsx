@@ -15,6 +15,7 @@ interface AuthContextType {
   login: (data: LoginData) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
+  updateUser: (data: { firstName: string; lastName: string; email: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -117,6 +118,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const clearError = () => setError(null);
 
+  const updateUser = async (data: { firstName: string; lastName: string; email: string }) => {
+    try {
+      setIsLoading(true);
+      // Здесь будет вызов API для обновления данных
+      // const response = await api.put('/users/update', data);
+      
+      // Пока имитируем успешное обновление
+      const updatedUser = {
+        ...user,
+        ...data
+      };
+      setUser(updatedUser);
+      await authService.setUserData(updatedUser);
+    } catch (error) {
+      console.error('Ошибка обновления:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value = {
     user,
     isLoading,
@@ -126,6 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     login,
     logout,
     clearError,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

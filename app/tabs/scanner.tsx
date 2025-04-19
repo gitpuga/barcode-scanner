@@ -18,7 +18,7 @@ import { useAuth } from "../context/AuthContext";
 // Функция для запроса информации о продукте по штрих-коду
 const fetchProductInfo = async (barcode: string) => {
   try {
-    const response = await fetch(`http://192.168.1.23:5000/api/products/barcode/${barcode}`);
+    const response = await fetch(`http://localhost:5000/api/products/barcode/${barcode}`);
     if (!response.ok) {
       throw new Error('Товар не найден');
     }
@@ -33,7 +33,7 @@ const fetchProductInfo = async (barcode: string) => {
 // Функция для получения рекомендуемых товаров
 const fetchRecommendedProducts = async () => {
   try {
-    const response = await fetch('http://10.0.2.2:5000/api/products?limit=2');
+    const response = await fetch('http://localhost:5000/api/products?limit=2');
     if (!response.ok) {
       return [];
     }
@@ -43,7 +43,7 @@ const fetchRecommendedProducts = async () => {
     return products.map((product: any) => ({
       id: product.id,
       name: product.name,
-      image: product.photo ? `http://10.0.2.2:5000${product.photo}` : null
+      image: product.photo ? `http://localhost:5000${product.photo}` : null
     })).slice(0, 2); // Ограничиваем до 2 товаров
   } catch (error) {
     console.error('Ошибка при получении рекомендуемых товаров:', error);
@@ -93,7 +93,7 @@ export default function ScannerScreen() {
           barcode: productInfo.barcode,
           barcodeType: scanningResult.type,
           productName: productInfo.name,
-          productImage: productInfo.photo ? `http://10.0.2.2:5000${productInfo.photo}` : null,
+          productImage: productInfo.photo ? `http://localhost:5000${productInfo.photo}` : null,
           composition: productInfo.ingredients || '',
           allergens: '',  // Это поле может не быть в вашей модели, но оно отображается на макете
           nutritionalValue: JSON.stringify(productInfo.nutritionalValue) || '',
