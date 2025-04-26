@@ -15,7 +15,12 @@ interface AuthContextType {
   login: (data: LoginData) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
-  updateUser: (data: { firstName: string; lastName: string; email: string }) => Promise<void>;
+  updateUser: (data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password?: string;
+  }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -118,21 +123,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const clearError = () => setError(null);
 
-  const updateUser = async (data: { firstName: string; lastName: string; email: string }) => {
+  const updateUser = async (data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password?: string;
+  }) => {
     try {
       setIsLoading(true);
-      // Здесь будет вызов API для обновления данных
-      // const response = await api.put('/users/update', data);
-      
-      // Пока имитируем успешное обновление
-      const updatedUser = {
-        ...user,
-        ...data
+
+      if (!user) {
+        throw new Error("Пользователь не авторизован");
+      }
+
+      // Вызов API через сервис
+      await authService.updateUser(data);
+
+      // Обновляем локальное состояние (пароль не сохраняем в локальном состоянии)
+      const updatedUser: Omit<AuthResponse, "accessToken"> = {
+        id: user.id,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        role: user.role,
       };
+
       setUser(updatedUser);
-      await authService.setUserData(updatedUser);
     } catch (error) {
-      console.error('Ошибка обновления:', error);
+      console.error("Ошибка обновления:", error);
       throw error;
     } finally {
       setIsLoading(false);

@@ -14,17 +14,20 @@ import * as ImagePicker from "expo-image-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CameraView, Camera, BarcodeScanningResult } from "expo-camera";
 import { useAuth } from "../context/AuthContext";
+import { useHistory } from "../context/HistoryContext";
 
 // Функция для запроса информации о продукте по штрих-коду
 const fetchProductInfo = async (barcode: string) => {
   try {
-    const response = await fetch(`http://localhost:5000/api/products/barcode/${barcode}`);
+    const response = await fetch(
+      `http://10.0.2.2:5000/api/products/barcode/${barcode}`
+    );
     if (!response.ok) {
-      throw new Error('Товар не найден');
+      throw new Error("Товар не найден");
     }
     return await response.json();
   } catch (error) {
-    console.error('Ошибка при получении данных о товаре:', error);
+    console.error("Ошибка при получении данных о товаре:", error);
     console.log(barcode);
     throw error;
   }
@@ -33,20 +36,22 @@ const fetchProductInfo = async (barcode: string) => {
 // Функция для получения рекомендуемых товаров
 const fetchRecommendedProducts = async () => {
   try {
-    const response = await fetch('http://localhost:5000/api/products?limit=2');
+    const response = await fetch("http://10.0.2.2:5000/api/products?limit=2");
     if (!response.ok) {
       return [];
     }
     const products = await response.json();
-    
+
     // Преобразуем данные в формат, ожидаемый компонентом
-    return products.map((product: any) => ({
-      id: product.id,
-      name: product.name,
-      image: product.photo ? `http://localhost:5000${product.photo}` : null
-    })).slice(0, 2); // Ограничиваем до 2 товаров
+    return products
+      .map((product: any) => ({
+        id: product.id,
+        name: product.name,
+        image: product.photo ? `http://10.0.2.2:5000:5000${product.photo}` : null,
+      }))
+      .slice(0, 2); // Ограничиваем до 2 товаров
   } catch (error) {
-    console.error('Ошибка при получении рекомендуемых товаров:', error);
+    console.error("Ошибка при получении рекомендуемых товаров:", error);
     return [];
   }
 };
@@ -59,6 +64,7 @@ export default function ScannerScreen() {
   const [flashMode, setFlashMode] = useState<"off" | "torch">("off");
   const cameraRef = useRef<CameraView>(null);
   const { isAuthenticated } = useAuth();
+  const { addToHistory } = useHistory();
 
   // Запрос разрешений камеры
   useEffect(() => {
@@ -68,43 +74,55 @@ export default function ScannerScreen() {
     })();
   }, []);
 
-  const handleBarCodeScanned = async (scanningResult: BarcodeScanningResult) => {
+  const handleBarCodeScanned = async (
+    scanningResult: BarcodeScanningResult
+  ) => {
     if (!isAuthenticated) {
-      alert('Пожалуйста, войдите в систему для сканирования товаров');
-      router.navigate('/');
+      alert("Пожалуйста, войдите в систему для сканирования товаров");
+      router.navigate("/");
       return;
     }
 
     if (scanned || loading) return;
-    
+
     setScanned(true);
     setLoading(true);
 
     try {
       // Запрос к API для получения информации о продукте
       const productInfo = await fetchProductInfo(scanningResult.data);
-      
+
       // Получаем рекомендуемые товары (можно реализовать отдельный запрос)
       const recommendedProducts = await fetchRecommendedProducts();
-      
+
+      // Сохраняем продукт в историю
+      const productImage = productInfo.photo
+        ? `http://10.0.2.2:5000${productInfo.photo}`
+        : null;
+      addToHistory({
+        barcode: productInfo.barcode,
+        productName: productInfo.name,
+        productImage,
+      });
+
       router.navigate({
-        pathname: '/screens/scanned-item',
-        params: { 
+        pathname: "/screens/scanned-item",
+        params: {
           barcode: productInfo.barcode,
           barcodeType: scanningResult.type,
           productName: productInfo.name,
-          productImage: productInfo.photo ? `http://localhost:5000${productInfo.photo}` : null,
-          composition: productInfo.ingredients || '',
-          allergens: '',  // Это поле может не быть в вашей модели, но оно отображается на макете
-          nutritionalValue: JSON.stringify(productInfo.nutritionalValue) || '',
-          recommendedProducts: JSON.stringify(recommendedProducts)
-        }
+          productImage,
+          composition: productInfo.ingredients || "",
+          allergens: "", // Это поле может не быть в вашей модели, но оно отображается на макете
+          nutritionalValue: JSON.stringify(productInfo.nutritionalValue) || "",
+          recommendedProducts: JSON.stringify(recommendedProducts),
+        },
       });
     } catch (error) {
       Alert.alert(
-        'Ошибка сканирования',
-        'Не удалось получить информацию о товаре. Пожалуйста, попробуйте снова.',
-        [{ text: 'OK', onPress: () => setScanned(false) }]
+        "Ошибка сканирования",
+        "Не удалось получить информацию о товаре. Пожалуйста, попробуйте снова.",
+        [{ text: "OK", onPress: () => setScanned(false) }]
       );
     } finally {
       setLoading(false);
@@ -163,7 +181,7 @@ export default function ScannerScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
-      
+
       {/* Шапка с кнопкой назад */}
       <View
         style={[
@@ -191,9 +209,17 @@ export default function ScannerScreen() {
             facing="back"
             barcodeScannerSettings={{
               barcodeTypes: [
-                "ean13", "ean8", "upc_a", "upc_e", 
-                "code39", "code93", "code128", 
-                "codabar", "itf14", "pdf417", "qr"
+                "ean13",
+                "ean8",
+                "upc_a",
+                "upc_e",
+                "code39",
+                "code93",
+                "code128",
+                "codabar",
+                "itf14",
+                "pdf417",
+                "qr",
               ],
             }}
             onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
@@ -225,10 +251,7 @@ export default function ScannerScreen() {
           <Text style={styles.footerButtonText}>Галерея</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.flashButton} 
-          onPress={toggleFlash}
-        >
+        <TouchableOpacity style={styles.flashButton} onPress={toggleFlash}>
           <Ionicons
             name={flashMode === "torch" ? "flash" : "flash-outline"}
             size={28}

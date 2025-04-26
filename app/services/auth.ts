@@ -129,20 +129,31 @@ class AuthService {
     await AsyncStorage.setItem("user_data", JSON.stringify(user));
   }
 
-  async updateUser(data: { firstName: string; lastName: string; email: string }): Promise<void> {
+  async updateUser(data: { 
+    firstName: string; 
+    lastName: string; 
+    email: string;
+    password?: string;
+  }): Promise<void> {
     try {
-      // Реальный вызов API
-      // await api.put('/users/update', data);
-      
-      // Пока просто обновляем локальные данные
+      // Получаем текущего пользователя для получения ID
       const userData = await this.getCurrentUser();
-      if (userData) {
-        const updatedUser = {
-          ...userData,
-          ...data
-        };
-        await this.setUserData(updatedUser);
+      if (!userData) {
+        throw new Error('Пользователь не авторизован');
       }
+
+      // Передаем ID пользователя в URL
+      await api.put(`/users/${userData.id}`, data);
+      
+      // После успешного обновления на сервере, обновляем локальные данные
+      // (пароль не сохраняем в локальных данных)
+      const updatedUser = {
+        ...userData,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email
+      };
+      await this.setUserData(updatedUser);
     } catch (error) {
       console.error('Ошибка обновления:', error);
       throw error;

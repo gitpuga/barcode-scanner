@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Замените localhost на IP-адрес вашего компьютера в той же сети, что и устройство
 // Например: "http://192.168.1.100:5000/api"
-const API_URL = "http://localhost:5000/api"; // 10.0.2.2 - специальный IP для Android-эмулятора, указывающий на localhost машины
+const API_URL = "http://10.0.2.2:5000/api"; // 10.0.2.2 - специальный IP для Android-эмулятора, указывающий на localhost машины
 
 const api = axios.create({
   baseURL: API_URL,
