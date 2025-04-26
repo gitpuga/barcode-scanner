@@ -128,6 +128,26 @@ class AuthService {
     }
     await AsyncStorage.setItem("user_data", JSON.stringify(user));
   }
+
+  async updateUser(data: { firstName: string; lastName: string; email: string }): Promise<void> {
+    try {
+      // Реальный вызов API
+      // await api.put('/users/update', data);
+      
+      // Пока просто обновляем локальные данные
+      const userData = await this.getCurrentUser();
+      if (userData) {
+        const updatedUser = {
+          ...userData,
+          ...data
+        };
+        await this.setUserData(updatedUser);
+      }
+    } catch (error) {
+      console.error('Ошибка обновления:', error);
+      throw error;
+    }
+  }
 }
 
 const authService = new AuthService();
