@@ -27,7 +27,26 @@ module.exports = (sequelize, Sequelize) => {
       allowNull: true,
       defaultValue: {},
     },
+    addedBy: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'users',
+        key: 'id'
+      }
+    },
+    status: {
+      type: Sequelize.ENUM('pending', 'approved', 'rejected'),
+      defaultValue: 'pending'
+    },
   });
+
+  Product.associate = function(models) {
+    Product.belongsTo(models.User, {
+      foreignKey: 'addedBy',
+      as: 'user'
+    });
+  };
 
   return Product;
 };

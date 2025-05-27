@@ -21,6 +21,12 @@ module.exports = function (app) {
 
   // Создание нового товара
   app.post("/api/products", [verifyToken, isAdmin], controller.create);
+  //////
+  /*app.post("/api/products", 
+    [verifyToken, upload.array('photos', 5)], // До 5 фото
+    controller.create
+  );*/
+  ///////
 
   // Обновление товара (только для админов)
   app.put("/api/products/:id", [verifyToken, isAdmin], controller.update);

@@ -7,6 +7,7 @@ exports.create = (req, res) => {
   // Проверка запроса
   if (!req.body.name || !req.body.barcode) {
     res.status(400).send({
+      success: false,
       message: "Имя и штрих-код не могут быть пустыми!",
     });
     return;
@@ -19,12 +20,16 @@ exports.create = (req, res) => {
     photo: req.body.photo,
     ingredients: req.body.ingredients,
     nutritionalValue: req.body.nutritionalValue || {},
+    addedBy: req.userId,
+    status: 'pending'
   };
 
   // Сохранение товара в базе данных
+  ////const createdProduct = await Product.create(product);
+
   Product.create(product)
     .then((data) => {
-      res.send(data);
+      res.send(data);//????
     })
     .catch((err) => {
       res.status(500).send({

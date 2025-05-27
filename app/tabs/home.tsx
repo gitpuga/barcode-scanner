@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import { Link } from "expo-router";
+import api from '../services/api';
 import {
   View,
   Text,
@@ -20,6 +22,21 @@ export default function HomeScreen() {
       </View>
     );
   }
+
+  const [recentApplications, setRecentApplications] = useState([]);
+
+  useEffect(() => {
+    const fetchRecentApplications = async () => {
+      try {
+        const response = await api.get('/products/applications/recent');
+        setRecentApplications(response.data.data);
+      } catch (error) {
+        console.error('Ошибка загрузки заявок:', error);
+      }
+    };
+
+    fetchRecentApplications();
+  }, []);
 
   return (
     <View style={styles.container}>
