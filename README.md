@@ -2,8 +2,20 @@
 > В разработке
 # Приложение SafeScan
 
+<img src="https://github.com/user-attachments/assets/7a1ed16d-4998-41ec-9875-4236715445a9" width="250">
+<img src="https://github.com/user-attachments/assets/4aa2a592-e94c-4aa9-8e52-32df06bbcce5" width="250">
+<img src="https://github.com/user-attachments/assets/ccf300bc-8d96-4e8a-82cc-8ae95816a489" width="250">
+<img src="https://github.com/user-attachments/assets/7f691686-15e9-452c-a878-64a839e8fe65" width="250">
+<img src="https://github.com/user-attachments/assets/5f4e8a60-9cc9-4955-8f26-838b8efaa45f" width="250">
+<img src="https://github.com/user-attachments/assets/8fed1c97-4092-49fe-a867-a0e000c5a463" width="250">
+<img src="https://github.com/user-attachments/assets/1b29382f-c3e4-4bf8-8733-d90861599e40" width="250">
+<img src="https://github.com/user-attachments/assets/152656ed-d86a-4ae8-b5b8-f2b97cdae693" width="250">
+<img src="https://github.com/user-attachments/assets/1001b8df-a3e5-4373-b45d-604d46bb6082" width="250">
+<img src="https://github.com/user-attachments/assets/1d5bc38e-0601-48dd-9edb-30b827f8f42b" width="250">
+
 # Функционал приложения:
 - Сканирование штрих-кодов продуктов.
+
 - Создание списка нежелательных ингредиентов.
 - Вывод информации о составе продукта с выделением опасных компонентов.
 - Рекомендации безопасных аналогов.
