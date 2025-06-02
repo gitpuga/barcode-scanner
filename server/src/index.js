@@ -28,6 +28,7 @@ require("./routes/auth.routes")(app);
 require("./routes/user.routes")(app);
 require("./routes/product.routes")(app);
 require("./routes/upload.routes")(app);
+require("./routes/list.routes")(app);
 
 // Настройка базы данных
 const db = require("./models");
@@ -43,6 +44,9 @@ if (process.env.NODE_ENV === "development" && process.env.DB_RESET === "true") {
     console.log("База данных синхронизирована.");
   });
 }
+
+// Настройка статических файлов
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Установка порта и запуск сервера
 const PORT = process.env.PORT || 5000;

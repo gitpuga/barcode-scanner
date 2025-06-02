@@ -19,6 +19,27 @@ module.exports = function (app) {
   // Получение товара по штрихкоду
   app.get("/api/products/barcode/:barcode", controller.findByBarcode);
 
+  // Получить информацию о продукте по штрихкоду
+  app.get(
+    "/api/products/barcode/:barcode",
+    verifyToken,
+    controller.getProductByBarcode
+  );
+
+  // Проверка ингредиентов на наличие в списках нежелательных
+  app.post(
+    "/api/products/check-ingredients",
+    verifyToken,
+    controller.checkIngredients
+  );
+
+  // Получить рекомендуемые продукты
+  app.get(
+    "/api/products/recommended",
+    verifyToken,
+    controller.getRecommendedProducts
+  );
+
   // Создание нового товара
   app.post("/api/products", [verifyToken, isAdmin], controller.create);
 

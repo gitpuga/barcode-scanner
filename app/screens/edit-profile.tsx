@@ -1,4 +1,3 @@
-// app/screens/edit-profile.tsx
 import React, { useState, useEffect } from "react";
 import {
   View,

@@ -15,41 +15,30 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CameraView, Camera, BarcodeScanningResult } from "expo-camera";
 import { useAuth } from "../context/AuthContext";
 import { useHistory } from "../context/HistoryContext";
+import { useIsFocused } from "@react-navigation/native";
+import { getProductByBarcode } from "../services/api";
 
-// Функция для запроса информации о продукте по штрих-коду
-const fetchProductInfo = async (barcode: string) => {
-  try {
-    const response = await fetch(
-      `http://10.0.2.2:5000/api/products/barcode/${barcode}`
-    );
-    if (!response.ok) {
-      throw new Error("Товар не найден");
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Ошибка при получении данных о товаре:", error);
-    console.log(barcode);
-    throw error;
-  }
-};
-
-// Функция для получения рекомендуемых товаров
+// Функция для получения рекомендуемых товаров (просто случайные продукты из Open Food Facts)
 const fetchRecommendedProducts = async () => {
   try {
-    const response = await fetch("http://10.0.2.2:5000/api/products?limit=2");
+    // Получаем продукты из популярной категории (например, "snacks")
+    const response = await fetch(
+      "https://world.openfoodfacts.org/category/snacks.json?fields=products.product_name,products.image_front_url,products.code&sort_by=unique_scans_n&page_size=10"
+    );
     if (!response.ok) {
       return [];
     }
-    const products = await response.json();
-
-    // Преобразуем данные в формат, ожидаемый компонентом
+    const data = await response.json();
+    const products = data.products || [];
+    // Преобразуем данные в ожидаемый формат
     return products
+      .filter((product: any) => product.product_name)
+      .slice(0, 2)
       .map((product: any) => ({
-        id: product.id,
-        name: product.name,
-        image: product.photo ? `http://10.0.2.2:5000:5000${product.photo}` : null,
-      }))
-      .slice(0, 2); // Ограничиваем до 2 товаров
+        id: product.code,
+        name: product.product_name,
+        image: product.image_front_url || null,
+      }));
   } catch (error) {
     console.error("Ошибка при получении рекомендуемых товаров:", error);
     return [];
@@ -62,9 +51,11 @@ export default function ScannerScreen() {
   const [scanned, setScanned] = useState(false);
   const [loading, setLoading] = useState(false);
   const [flashMode, setFlashMode] = useState<"off" | "torch">("off");
+  const [isCameraVisible, setIsCameraVisible] = useState(true);
   const cameraRef = useRef<CameraView>(null);
   const { isAuthenticated } = useAuth();
   const { addToHistory } = useHistory();
+  const isFocused = useIsFocused();
 
   // Запрос разрешений камеры
   useEffect(() => {
@@ -73,6 +64,14 @@ export default function ScannerScreen() {
       setHasPermission(status === "granted");
     })();
   }, []);
+
+  useEffect(() => {
+    if (isFocused) {
+      setScanned(false);
+      setIsCameraVisible(false);
+      setTimeout(() => setIsCameraVisible(true), 100);
+    }
+  }, [isFocused]);
 
   const handleBarCodeScanned = async (
     scanningResult: BarcodeScanningResult
@@ -89,20 +88,14 @@ export default function ScannerScreen() {
     setLoading(true);
 
     try {
-      // Запрос к API для получения информации о продукте
-      const productInfo = await fetchProductInfo(scanningResult.data);
-
-      // Получаем рекомендуемые товары (можно реализовать отдельный запрос)
-      const recommendedProducts = await fetchRecommendedProducts();
+      // Получаем информацию о продукте через наш API
+      const productInfo = await getProductByBarcode(scanningResult.data);
 
       // Сохраняем продукт в историю
-      const productImage = productInfo.photo
-        ? `http://10.0.2.2:5000${productInfo.photo}`
-        : null;
       addToHistory({
         barcode: productInfo.barcode,
         productName: productInfo.name,
-        productImage,
+        productImage: productInfo.photo,
       });
 
       router.navigate({
@@ -111,13 +104,19 @@ export default function ScannerScreen() {
           barcode: productInfo.barcode,
           barcodeType: scanningResult.type,
           productName: productInfo.name,
-          productImage,
+          productImage: productInfo.photo,
           composition: productInfo.ingredients || "",
-          allergens: "", // Это поле может не быть в вашей модели, но оно отображается на макете
+          unwanted_ingredients: JSON.stringify(
+            productInfo.unwanted_ingredients || []
+          ),
           nutritionalValue: JSON.stringify(productInfo.nutritionalValue) || "",
-          recommendedProducts: JSON.stringify(recommendedProducts),
+          recommendedProducts: JSON.stringify(
+            productInfo.recommended_products || []
+          ),
         },
       });
+      setIsCameraVisible(false);
+      setTimeout(() => setIsCameraVisible(true), 100);
     } catch (error) {
       Alert.alert(
         "Ошибка сканирования",
@@ -126,6 +125,7 @@ export default function ScannerScreen() {
       );
     } finally {
       setLoading(false);
+      setScanned(false);
     }
   };
 
@@ -204,29 +204,32 @@ export default function ScannerScreen() {
             <Text style={styles.loadingText}>Анализируем продукт...</Text>
           </View>
         ) : (
-          <CameraView
-            style={styles.camera}
-            facing="back"
-            barcodeScannerSettings={{
-              barcodeTypes: [
-                "ean13",
-                "ean8",
-                "upc_a",
-                "upc_e",
-                "code39",
-                "code93",
-                "code128",
-                "codabar",
-                "itf14",
-                "pdf417",
-                "qr",
-              ],
-            }}
-            onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-            //flash={flashMode}
-            ref={cameraRef}
-          >
-            <View style={styles.overlay}>
+          <>
+            {isCameraVisible && (
+              <CameraView
+                style={styles.camera}
+                facing="back"
+                barcodeScannerSettings={{
+                  barcodeTypes: [
+                    "ean13",
+                    "ean8",
+                    "upc_a",
+                    "upc_e",
+                    "code39",
+                    "code93",
+                    "code128",
+                    "codabar",
+                    "itf14",
+                    "pdf417",
+                    "qr",
+                  ],
+                }}
+                onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+                //flash={flashMode}
+                ref={cameraRef}
+              />
+            )}
+            <View style={[styles.overlay, StyleSheet.absoluteFill]}>
               <View style={styles.scanArea}>
                 <View style={styles.cornerTopLeft} />
                 <View style={styles.cornerTopRight} />
@@ -235,7 +238,7 @@ export default function ScannerScreen() {
               </View>
               <Text style={styles.scanHint}>Наведите на штрих-код</Text>
             </View>
-          </CameraView>
+          </>
         )}
       </View>
 
@@ -299,10 +302,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   overlay: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.4)",
+    zIndex: 1,
   },
   scanArea: {
     width: 250,

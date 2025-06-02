@@ -24,7 +24,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.contentContainer}>
-      <View style={styles.profileContainer}>
+        <View style={styles.profileContainer}>
           <Ionicons name="person-circle-outline" size={32} color="black" />
           {isAuthenticated && user ? (
             <Text style={styles.profileName}>
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    paddingTop: 40
+    paddingTop: 40,
   },
   profileContainer: {
     flexDirection: "row",

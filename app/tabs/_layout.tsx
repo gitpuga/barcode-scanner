@@ -1,8 +1,20 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { View, StyleSheet, Pressable } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  GestureResponderEvent,
+  PressableProps,
+  ViewStyle,
+  StyleProp,
+} from "react-native";
+import { router } from "expo-router";
+import { useState } from "react";
 
 export default function TabsLayout() {
+  const [scannerKey, setScannerKey] = useState(0);
+
   return (
     <Tabs
       screenOptions={({ route }) => ({
@@ -15,20 +27,25 @@ export default function TabsLayout() {
           backgroundColor: "#ffffff",
           height: 60,
         },
-        tabBarButton: (props) => {
+        tabBarButton: (props: PressableProps) => {
           if (route.name === "scanner") {
+            const baseStyle: StyleProp<ViewStyle> = {
+              top: -20,
+              justifyContent: "center",
+              alignItems: "center",
+            };
+
             return (
               <Pressable
-                {...props}
-                style={[
-                  props.style,
-                  {
-                    top: -20,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  },
-                ]}
-              ></Pressable>
+                onPress={(e: GestureResponderEvent) => {
+                  props.onPress?.(e);
+                  setScannerKey((prev) => prev + 1);
+                  router.push("/tabs/scanner");
+                }}
+                style={[props.style as StyleProp<ViewStyle>, baseStyle]}
+              >
+                {props.children}
+              </Pressable>
             );
           }
           return <Pressable {...props} />;
@@ -65,6 +82,7 @@ export default function TabsLayout() {
             </View>
           ),
         }}
+        key={`scanner-${scannerKey}`}
       />
       <Tabs.Screen
         name="history"
