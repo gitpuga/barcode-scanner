@@ -74,7 +74,21 @@
    - barcode
    - photo (путь к файлу)
    - ingredients
-   - nutritionalValue (JSON) 
+   - nutritionalValue (JSON)
+
+3. `lists` - Товары
+   - id (PK)
+   - user_id
+   - list_name
+   - createdAt
+   - updatedAt
+
+3. `ingredients` - Товары
+   - id (PK)
+   - list_id
+   - ingredient_name
+   - createdAt
+   - updatedAt
 
 # Структура проекта
   ```
